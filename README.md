@@ -2,7 +2,7 @@
 
 Custom CNN model đạt **~95-96% trên CIFAR-10** và **~79-81% trên CIFAR-100**.
 
-# Author: Van Cong Toan
+# Author: Van Cong Toan, Phan Dinh Trung
 
 ## Kiến trúc model
 
