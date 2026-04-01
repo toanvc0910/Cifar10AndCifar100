@@ -73,28 +73,36 @@ class WideResBlock(nn.Module):
 class WideResNet(nn.Module):
     def __init__(self, depth=28, widen_factor=4, dropout=0.3, num_classes=10, remove_group3=False):
         super().__init__()
-        assert (depth - 4) % 6 == 0
-        n = (depth - 4) // 6
+        assert (depth - 4) % 6 == 0 # Ép depth phải hợp lệ theo công thức WRN: depth = 6n + 4.
+        n = (depth - 4) // 6 # Tính số residual block mỗi group. Với depth=28 thì n=4.
+
         ch = [16, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]
-        self.remove_group3 = remove_group3
-        #in_channels, out_channels , kernel_size , stride , padding
+        #Tạo danh sách số kênh cho từng stage: ch[0]=16 (stem), ch[1]=64, ch[2]=128, ch[3]=256 khi widen_factor=4.
+        
+        self.remove_group3 = remove_group3 # Lưu lại cờ ablation để biết có bỏ group3 hay không.
+    
         self.conv1 = nn.Conv2d(3, ch[0], 3, 1, 1, bias=False) 
+        #in_channels=3 (RGB), out_channels=16, kernel=3x3, stride=1, padding=1.
+        #bias=False vì thường đi kèm BatchNorm (bias không cần thiết).
+    
         self.group1 = self._make_group(ch[0], ch[1], n, stride=1, dropout=dropout)
+        # Tạo Group1 gồm n residual blocks.Kênh 16 -> 64, stride block đầu là 1 (không giảm kích thước ảnh).
         self.group2 = self._make_group(ch[1], ch[2], n, stride=2, dropout=dropout)
-        if remove_group3:
-            self.group3 = nn.Identity()
-            final_ch = ch[2]
-        else:
-            self.group3 = self._make_group(ch[2], ch[3], n, stride=2, dropout=dropout)
-            final_ch = ch[3]
-        self.bn_final = nn.BatchNorm2d(final_ch)
-        self.fc = nn.Linear(final_ch, num_classes)
+        #Tạo Group2 gồm n block. Kênh 64 -> 128, stride block đầu là 2 (giảm spatial còn một nửa).
+        self.group3 = self._make_group(ch[2], ch[3], n, stride=2, dropout=dropout)
+        
+        self.bn_final = nn.BatchNorm2d(ch[3])
+        #BatchNorm cuối theo đúng số kênh sau stage cuối (128 hoặc 256).
+        self.fc = nn.Linear(ch[3], num_classes)
+        #Fully Connected phân loại:đầu vào final_ch, đầu ra num_classes (ví dụ 10 lớp CIFAR-10).
         self._init_weights()
 
     def _make_group(self, in_ch, out_ch, n_blocks, stride, dropout):
+        #Block đầu group dùng stride truyền vào (1 hoặc 2) và có thể đổi số kênh.
         layers = [WideResBlock(in_ch, out_ch, stride, dropout)]
         for _ in range(1, n_blocks):
             layers.append(WideResBlock(out_ch, out_ch, 1, dropout))
+            #Các block sau giữ nguyên số kênh, stride=1.
         return nn.Sequential(*layers)
 
     def _init_weights(self):
@@ -109,14 +117,15 @@ class WideResNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.group1(x)
-        x = self.group2(x)
-        x = self.group3(x)
-        x = F.relu(self.bn_final(x), inplace=True)
-        x = F.adaptive_avg_pool2d(x, 1)
-        x = torch.flatten(x, 1)
-        return self.fc(x)
+        x = self.conv1(x) # Qua conv đầu tiên: tăng kênh từ 3 lên 16.
+        x = self.group1(x)# Qua group1: trích xuất đặc trưng mức đầu.
+        x = self.group2(x)# Qua group2: tăng kênh, giảm spatial.
+        x = self.group3(x)# Qua group3: tăng kênh, giảm spatial.
+        x = F.relu(self.bn_final(x), inplace=True) # BatchNorm cuối rồi ReLU.
+        x = F.adaptive_avg_pool2d(x, 1) # Global average pooling về kích thước 1x1.
+        x = torch.flatten(x, 1) # Flatten từ [B, C, 1, 1] thành [B, C].
+        return self.fc(x) # Qua FC để ra logits [B, num_classes].
+
 # Debugs========================================================================================
 def parse_args():
     parser = argparse.ArgumentParser(description='Inspect WideResNet architecture quickly (no full training).')
