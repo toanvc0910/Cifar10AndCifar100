@@ -1,18 +1,33 @@
-# WideResNet-28-4 + SE Attention — CIFAR-10 / CIFAR-100
+# Deep Learning — Midterm & Final Project
 
-Custom CNN model đạt **~95-96% trên CIFAR-10** và **~79-81% trên CIFAR-100**.
+WideResNet + SE Attention for image classification.
 
 # Author: Van Cong Toan, Phan Dinh Trung
 
-## Kiến trúc model
+## Overview
+
+|              | Midterm                       | Final                               |
+| ------------ | ----------------------------- | ----------------------------------- |
+| Dataset      | Animals-5 (custom, 2,750 ảnh) | CIFAR-10 (60K) & CIFAR-100 (60K)    |
+| Model        | WRN-16-2 + SE (M1)            | WRN-28-4 + SE (M2)                  |
+| Parameters   | ~0.7M                         | ~5.9M                               |
+| Image size   | 224×224 và 32×32              | 32×32                               |
+| Epochs       | 100                           | 200                                 |
+| Best results | 32: 79.60%, 224: TBD          | CIFAR-10: 96.36%, CIFAR-100: 79.67% |
+
+---
+
+## 1. Kiến trúc chung — WideResNet + SE Attention
+
+Cả midterm và final dùng cùng kiến trúc, chỉ khác depth và widen factor.
 
 ```
-Input (32×32×3)
-  → Stem Conv 3×3 (S=1, P=1) → 32×32×16
-  → Group 1: WideResBlock ×4 (S=1)          → 32×32×64
-  → Group 2: WideResBlock ×4 (first S=2)    → 16×16×128
-  → Group 3: WideResBlock ×4 (first S=2)    → 8×8×256
-  → BN → ReLU → AvgPool → Flatten → FC → 10 classes (hoặc 100)
+Input (IMG_SIZE × IMG_SIZE × 3)
+  → Stem Conv 3×3 (S=1, P=1) → 16 channels
+  → Group 1: WideResBlock × N (S=1)          → 16 × widen channels
+  → Group 2: WideResBlock × N (first S=2)    → 32 × widen channels
+  → Group 3: WideResBlock × N (first S=2)    → 64 × widen channels
+  → BN → ReLU → AdaptiveAvgPool(1×1) → Flatten → FC → num_classes
 ```
 
 **Mỗi WideResBlock:**
@@ -29,146 +44,166 @@ Input → BN → ReLU → Conv 3×3 → Dropout(0.3) → BN → ReLU → Conv 3�
 Input → AvgPool(1×1) → FC(C→C/16) → ReLU → FC(C/16→C) → Sigmoid → × Input
 ```
 
-| Thông số     | Giá trị                         |
-| ------------ | ------------------------------- |
-| Depth        | 28 layers                       |
-| Widen factor | 4                               |
-| Parameters   | ~5.9M                           |
-| Blocks       | 3 groups × 4 blocks = 12 blocks |
-| Channels     | 16 → 64 → 128 → 256             |
+### So sánh M1 vs M2
 
-## Cấu trúc thư mục
-
-```
-├── WRN_CIFAR10.ipynb          # Notebook Kaggle — CIFAR-10
-├── WRN_CIFAR100.ipynb         # Notebook Kaggle — CIFAR-100
-├── Colab_CIFAR10.ipynb        # Notebook Colab — CIFAR-10 (lưu checkpoint lên Google Drive)
-├── Colab_CIFAR100.ipynb       # Notebook Colab — CIFAR-100 (lưu checkpoint lên Google Drive)
-├── WRN_Architecture_v3.html   # Sơ đồ kiến trúc model (mở bằng trình duyệt)
-└── README.md
-```
-
-## Cách chạy
-
-### Trên Kaggle
-
-1. Vào [kaggle.com/code](https://www.kaggle.com/code) → **New Notebook** → **File → Upload Notebook**
-2. Chọn file `WRN_CIFAR10.ipynb` hoặc `WRN_CIFAR100.ipynb`
-3. **Settings** → **Accelerator** → chọn **GPU T4 ×2** (cần verify phone trước)
-4. **Settings** → **Internet** → bật **ON**
-5. Bấm **Run All**
-6. Chờ ~2-3 tiếng → kết quả ở tab **Output**
-
-> ⚠️ Kaggle xoá file khi session kết thúc. Đừng bấm Stop Session. Đóng tab thì session vẫn chạy ngầm (tối đa 9h).
-
-### Trên Google Colab
-
-1. Vào [colab.research.google.com](https://colab.research.google.com) → **File → Upload Notebook**
-2. Chọn file `Colab_CIFAR10.ipynb` hoặc `Colab_CIFAR100.ipynb`
-3. **Runtime → Change runtime type → T4 GPU → Save**
-4. Bấm **Run All**
-5. Lần đầu sẽ yêu cầu **cho phép truy cập Google Drive** → bấm Allow
-6. Chờ ~2-3 tiếng → kết quả lưu trong Google Drive
-
-> ✅ Bản Colab lưu checkpoint lên Google Drive. Nếu bị disconnect → Run All lại → tự resume từ epoch cuối.
-
-## Training recipe
-
-| Thành phần   | Cấu hình                                                               |
-| ------------ | ---------------------------------------------------------------------- |
-| Optimizer    | SGD (lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True)           |
-| Scheduler    | CosineAnnealingLR (200 epochs)                                         |
-| Loss         | CrossEntropyLoss (label_smoothing=0.1)                                 |
-| Augmentation | RandomCrop(32, pad=4) + HorizontalFlip + AutoAugment(CIFAR10) + Cutout |
-| Cutout size  | 16 (CIFAR-10), 8 (CIFAR-100)                                           |
-| Dropout      | 0.3                                                                    |
-| Batch size   | 128                                                                    |
-| Epochs       | 200                                                                    |
-
-### Tại sao chọn các giá trị này?
-
-- **CosineAnnealingLR** thay vì MultiStepLR: learning rate giảm mượt hơn, accuracy cuối cao hơn ~0.5%
-- **AutoAugment + Cutout**: augmentation mạnh nhất cho CIFAR, tăng ~2-3% accuracy
-- **Label smoothing 0.1**: ngăn model quá tự tin → generalize tốt hơn
-- **Nesterov momentum**: hội tụ nhanh hơn SGD thường
-- **Cutout 16 (CIFAR-10) vs 8 (CIFAR-100)**: CIFAR-100 có 100 class, cần giữ nhiều thông tin hơn nên cutout nhỏ hơn
-
-## Output files
-
-Sau khi train xong, các file được tạo ra:
-
-| File                  | Mô tả                                                                |
-| --------------------- | -------------------------------------------------------------------- |
-| `best_model.pth`      | Weights của model có accuracy cao nhất — dùng để predict ảnh mới     |
-| `last_checkpoint.pth` | Checkpoint để resume nếu bị disconnect (chỉ bản Colab lưu lên Drive) |
-| `training_curves.png` | Biểu đồ Loss và Accuracy theo epoch                                  |
-| `model_summary.txt`   | Thông số model + log accuracy mỗi epoch                              |
-| `training_log.json`   | Dữ liệu training dạng JSON (để vẽ lại biểu đồ nếu cần)               |
-
-## Kết quả kỳ vọng
-
-| Dataset   | Accuracy |
-| --------- | -------- |
-| CIFAR-10  | 95-96%   |
-| CIFAR-100 | 79-81%   |
-
-> Accuracy tăng mạnh nhất ở epoch 150-200 khi learning rate giảm rất thấp. Đừng lo nếu epoch 50-100 còn thấp.
+| Thông số             | M1 (Midterm)                                        | M2 (Final)                                         |
+| -------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| Depth                | 16                                                  | 28                                                 |
+| Widen factor         | 2                                                   | 4                                                  |
+| Blocks per group (N) | 2                                                   | 4                                                  |
+| Channels             | 16 → 32 → 64 → 128                                  | 16 → 64 → 128 → 256                                |
+| Parameters           | ~0.7M                                               | ~5.9M                                              |
+| Lý do chọn           | Dataset nhỏ (2500 ảnh) → model nhỏ để tránh overfit | Dataset lớn (50K ảnh) → model lớn để tận dụng data |
 
 ### Tại sao model này mạnh?
 
 1. **Skip connection** — gradient không bị mất khi train model sâu
-2. **BatchNorm** — chuẩn hoá dữ liệu giữa các layer, train ổn định hơn
+2. **Pre-activation (BN → ReLU → Conv)** — chuẩn hoá trước convolution, train ổn định hơn
 3. **SE Attention** — tự học channel nào quan trọng cho ảnh hiện tại
-4. **Augmentation mạnh** — AutoAugment + Cutout buộc model học feature tổng quát
+4. **Widen thay vì deeper** — tăng chiều rộng hiệu quả hơn tăng chiều sâu (theo paper WRN)
 
-## Predict ảnh tự chọn
+---
 
-Sau khi train xong, load model và predict:
+## 2. Midterm — Animals-5
 
-```python
-import torch
-import torchvision.transforms as T
-from PIL import Image
+### Dataset
 
-# CIFAR-10 classes
-CLASSES = ['airplane', 'automobile', 'bird', 'cat', 'deer',
-           'dog', 'frog', 'horse', 'ship', 'truck']
+| Thông số | Giá trị                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------ |
+| Source   | [Animals-10 (Kaggle)](https://www.kaggle.com/datasets/alessiocorrado99/animals10) — chọn 5 class |
+| Classes  | butterfly, cat, chicken, dog, horse                                                              |
+| Train    | 500 ảnh/class × 5 = 2,500 ảnh                                                                    |
+| Test     | 50 ảnh/class × 5 = 250 ảnh                                                                       |
+| Dedup    | MD5 hash để loại ảnh trùng                                                                       |
 
-# Load model
-model = WideResNet(depth=28, widen_factor=4, num_classes=10)
-model.load_state_dict(torch.load('best_model.pth', map_location='cpu'))
-model.eval()
+### Training recipe
 
-# Preprocess
-transform = T.Compose([
-    T.Resize((32, 32)),
-    T.ToTensor(),
-    T.Normalize((0.4914, 0.4822, 0.4465), (0.2471, 0.2435, 0.2616)),
-])
+| Thành phần    | Cấu hình                                                     |
+| ------------- | ------------------------------------------------------------ |
+| Optimizer     | SGD (lr=0.1, momentum=0.9, weight_decay=5e-4, nesterov=True) |
+| Scheduler     | CosineAnnealingLR (100 epochs)                               |
+| Loss          | CrossEntropyLoss (label_smoothing=0.1)                       |
+| Augmentation  | Resize + RandomCrop + HFlip + ColorJitter + Cutout           |
+| Cutout size   | IMG_SIZE // 4 (224→56, 32→8)                                 |
+| Dropout       | 0.3                                                          |
+| Batch size    | 8 (224×224), 128 (32×32)                                     |
+| Normalization | ImageNet mean/std                                            |
 
-# Predict
-img = Image.open('your_image.jpg')
-x = transform(img).unsqueeze(0)
-with torch.no_grad():
-    probs = torch.softmax(model(x), dim=1)[0]
-    top5 = torch.topk(probs, 5)
-    for i in range(5):
-        print(f'{CLASSES[top5.indices[i]]}: {top5.values[i]*100:.1f}%')
+### Kết quả
+
+| Image Size | Best Test Acc | Train Acc (cuối) | Gap  | Ghi chú                |
+| ---------- | ------------- | ---------------- | ---- | ---------------------- |
+| 32×32      | 79.60%        | ~95%             | ~17% | Overfit do dataset nhỏ |
+| 224×224    | TBD           | TBD              | TBD  | Chờ kết quả            |
+
+### Phân tích overfit
+
+WRN-28-4 (5.9M params) ban đầu cho gap 30% (train 98% vs test 73%). Giảm sang WRN-16-2 (0.7M params) cải thiện rõ rệt: gap giảm còn 17%, best test tăng từ 73% → 79%. Dataset 2,500 ảnh vẫn nhỏ so với 0.7M params nên overfit là không tránh khỏi.
+
+### Cách chạy
+
+1. Upload notebook `WRN_Animals_Kaggle.ipynb` lên Kaggle
+2. **+ Add Input** → `animals-5-custom-train` và `animals-5-custom-test`
+3. **Settings** → GPU T4
+4. Lần 1: `IMG_SIZE = 224` → Run All
+5. Lần 2: đổi `IMG_SIZE = 32` → Restart & Run All
+
+Thời gian: ~30-60 phút (224), ~3-5 phút (32) trên T4.
+
+---
+
+## 3. Final — CIFAR-10 & CIFAR-100
+
+### Dataset
+
+|            | CIFAR-10 | CIFAR-100 |
+| ---------- | -------- | --------- |
+| Classes    | 10       | 100       |
+| Train      | 50,000   | 50,000    |
+| Test       | 10,000   | 10,000    |
+| Image size | 32×32    | 32×32     |
+
+### Training recipe
+
+| Thành phần    | CIFAR-10                                                | CIFAR-100            |
+| ------------- | ------------------------------------------------------- | -------------------- |
+| Optimizer     | SGD (lr=0.1, momentum=0.9, wd=5e-4, nesterov)           | Giống                |
+| Scheduler     | CosineAnnealingLR (200 epochs)                          | Giống                |
+| Loss          | CrossEntropyLoss (label_smoothing=0.1)                  | Giống                |
+| Augmentation  | RandomCrop(32,pad=4) + HFlip + AutoAugment + Cutout(16) | Cutout(8) thay vì 16 |
+| Batch size    | 128                                                     | 128                  |
+| Normalization | CIFAR-10 mean/std                                       | CIFAR-100 mean/std   |
+
+**Cutout 16 (CIFAR-10) vs 8 (CIFAR-100):** CIFAR-100 có 100 class → cần giữ nhiều thông tin hơn nên cutout nhỏ hơn.
+
+### Kết quả
+
+| Dataset   | Best Test Acc | Train Acc (cuối) | Gap         | Overfit?                           |
+| --------- | ------------- | ---------------- | ----------- | ---------------------------------- |
+| CIFAR-10  | **96.36%**    | ~93%             | Val > Train | Không — do augmentation mạnh       |
+| CIFAR-100 | **79.67%**    | ~89%             | ~10%        | Nhẹ — chấp nhận được cho 100 class |
+
+**CIFAR-10 val > train:** Hiện tượng bình thường khi dùng AutoAugment + Cutout. Augmentation chỉ áp dụng lúc train → train khó hơn test → val accuracy cao hơn. Đây là dấu hiệu regularization tốt.
+
+### Cách chạy
+
+1. Upload `WRN_CIFAR10.ipynb` hoặc `WRN_CIFAR100.ipynb` lên Kaggle
+2. **Settings** → GPU T4, Internet ON
+3. Bấm **Run All** → chờ ~2-3 tiếng
+
+---
+
+## 4. Cấu trúc thư mục
+
+```
+├── midterm/
+│   ├── WRN_Animals_Kaggle.ipynb       # Notebook train Animals-5 (224 & 32)
+│   └── README.md
+├── final/
+│   ├── WRN_CIFAR10.ipynb              # Notebook train CIFAR-10
+│   ├── WRN_CIFAR100.ipynb             # Notebook train CIFAR-100
+│   └── README.md
+├── reports/
+│   ├── DL_Midterm_Report.docx         # Báo cáo giữa kỳ
+│   ├── DL_Final_Report.docx           # Báo cáo cuối kỳ
+│   └── DL_Final_Report.pdf
+└── README.md                          # File này
 ```
 
-> ⚠️ CIFAR-10 chỉ nhận diện 10 loại: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck. Đưa ảnh ngoài 10 loại này sẽ cho kết quả sai.
+## 5. Output files (mỗi lần train)
 
-## Yêu cầu
+| File                                   | Mô tả                                                |
+| -------------------------------------- | ---------------------------------------------------- |
+| `best_model.pth`                       | Weights accuracy cao nhất — giám khảo load để verify |
+| `last_checkpoint.pth`                  | Checkpoint để resume nếu bị disconnect               |
+| `charts_*.png` / `training_curves.png` | Biểu đồ Loss và Accuracy                             |
+| `model_summary.txt`                    | Thông số model + log từng epoch                      |
+| `training_log.json`                    | Dữ liệu JSON (vẽ lại biểu đồ nếu cần)                |
+
+## 6. Giải thích các thông số chính
+
+| Thông số        | Ý nghĩa                                                     | Midterm            | Final              |
+| --------------- | ----------------------------------------------------------- | ------------------ | ------------------ |
+| Depth           | Tổng số layer → (depth-4)/6 block mỗi group                 | 16 (2 block/group) | 28 (4 block/group) |
+| Widen factor    | Hệ số nhân channel                                          | 2 (channels ×2)    | 4 (channels ×4)    |
+| Batch size      | Số ảnh xử lý mỗi lần cập nhật weights                       | 8 hoặc 128         | 128                |
+| Epochs          | Số lần duyệt toàn bộ dataset                                | 100                | 200                |
+| Learning rate   | Tốc độ cập nhật weights, giảm dần theo cosine               | 0.1 → 0            | 0.1 → 0            |
+| Label smoothing | Làm mềm label (0→0.05, 1→0.95) → giảm overconfidence        | 0.1                | 0.1                |
+| Cutout          | Che random 1 vùng vuông → buộc model không phụ thuộc 1 vùng | IMG/4              | 16 hoặc 8          |
+| Dropout         | Tắt random 30% neuron khi train → giảm overfit              | 0.3                | 0.3                |
+
+## 7. Yêu cầu hệ thống
 
 - Python 3.8+
 - PyTorch 1.13+
 - torchvision 0.14+
-- GPU: NVIDIA T4 (Kaggle/Colab free tier) hoặc tương đương
-- Thời gian train: ~2-3 giờ / dataset trên T4
+- GPU: NVIDIA T4 (Kaggle/Colab free tier)
 
-## Tham khảo
+## 8. Tham khảo
 
 - [Wide Residual Networks (Zagoruyko & Komodakis, 2016)](https://arxiv.org/abs/1605.07146)
 - [Squeeze-and-Excitation Networks (Hu et al., 2018)](https://arxiv.org/abs/1709.01507)
 - [AutoAugment (Cubuk et al., 2019)](https://arxiv.org/abs/1805.09501)
 - [Cutout (DeVries & Taylor, 2017)](https://arxiv.org/abs/1708.04552)
+- [Animals-10 Dataset (Corrado, Kaggle)](https://www.kaggle.com/datasets/alessiocorrado99/animals10)

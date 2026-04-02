@@ -1,0 +1,121 @@
+============================================
+MODEL SUMMARY — WideResNet-16-2 + SE Attention
+============================================
+Dataset:          Animals-5 (Custom)
+Image size:       224x224
+Classes:          5 (butterfly, cat, chicken, dog, horse)
+Train samples:    2500
+Test samples:     250
+Total params:     696,881
+Trainable params: 696,881
+Epochs:           100
+Batch size:       32
+Optimizer:        SGD (lr=0.1, momentum=0.9, wd=0.0005, nesterov)
+Scheduler:        CosineAnnealingLR
+Augmentation:     Resize + RandomCrop + HFlip + ColorJitter + Cutout
+Label smoothing:  0.1
+Dropout:          0.3
+Best test acc:    80.40%
+============================================
+
+--- Epoch-by-epoch log ---
+Epoch   1 | train_loss=1.57033 train_acc=32.92% | val_loss=1.76168 val_acc=30.40%
+Epoch   2 | train_loss=1.51087 train_acc=35.24% | val_loss=2.21045 val_acc=22.00%
+Epoch   3 | train_loss=1.48048 train_acc=38.56% | val_loss=1.53397 val_acc=35.20%
+Epoch   4 | train_loss=1.40259 train_acc=43.72% | val_loss=1.47534 val_acc=46.80%
+Epoch   5 | train_loss=1.35001 train_acc=46.44% | val_loss=1.54961 val_acc=43.20%
+Epoch   6 | train_loss=1.32616 train_acc=48.96% | val_loss=1.28288 val_acc=51.60%
+Epoch   7 | train_loss=1.27555 train_acc=51.84% | val_loss=1.71583 val_acc=36.80%
+Epoch   8 | train_loss=1.25214 train_acc=53.08% | val_loss=1.54573 val_acc=39.20%
+Epoch   9 | train_loss=1.23083 train_acc=56.16% | val_loss=1.32692 val_acc=57.60%
+Epoch  10 | train_loss=1.20189 train_acc=56.64% | val_loss=2.21608 val_acc=32.40%
+Epoch  11 | train_loss=1.19575 train_acc=56.72% | val_loss=1.40952 val_acc=60.00%
+Epoch  12 | train_loss=1.17664 train_acc=58.00% | val_loss=1.32318 val_acc=54.00%
+Epoch  13 | train_loss=1.15483 train_acc=58.44% | val_loss=1.79382 val_acc=39.60%
+Epoch  14 | train_loss=1.14872 train_acc=58.92% | val_loss=1.27504 val_acc=53.60%
+Epoch  15 | train_loss=1.10021 train_acc=61.96% | val_loss=1.25114 val_acc=53.60%
+Epoch  16 | train_loss=1.06175 train_acc=64.44% | val_loss=1.29408 val_acc=57.20%
+Epoch  17 | train_loss=1.07298 train_acc=64.36% | val_loss=1.68755 val_acc=44.00%
+Epoch  18 | train_loss=1.06208 train_acc=64.88% | val_loss=1.44604 val_acc=53.60%
+Epoch  19 | train_loss=1.05385 train_acc=64.40% | val_loss=1.39723 val_acc=52.80%
+Epoch  20 | train_loss=1.05438 train_acc=65.24% | val_loss=1.76108 val_acc=44.40%
+Epoch  21 | train_loss=1.04196 train_acc=65.64% | val_loss=1.19531 val_acc=60.00%
+Epoch  22 | train_loss=1.03304 train_acc=66.44% | val_loss=1.27555 val_acc=56.40%
+Epoch  23 | train_loss=1.00732 train_acc=67.36% | val_loss=1.84510 val_acc=49.20%
+Epoch  24 | train_loss=1.02569 train_acc=66.40% | val_loss=1.19049 val_acc=59.60%
+Epoch  25 | train_loss=1.02024 train_acc=67.24% | val_loss=1.21122 val_acc=61.60%
+Epoch  26 | train_loss=1.01472 train_acc=67.24% | val_loss=1.11830 val_acc=62.80%
+Epoch  27 | train_loss=0.99278 train_acc=68.60% | val_loss=1.17023 val_acc=59.20%
+Epoch  28 | train_loss=0.99310 train_acc=67.72% | val_loss=1.62586 val_acc=46.40%
+Epoch  29 | train_loss=0.98395 train_acc=69.92% | val_loss=1.18241 val_acc=61.20%
+Epoch  30 | train_loss=0.97499 train_acc=69.12% | val_loss=1.54303 val_acc=51.20%
+Epoch  31 | train_loss=0.96660 train_acc=70.08% | val_loss=1.47430 val_acc=50.40%
+Epoch  32 | train_loss=0.96030 train_acc=70.64% | val_loss=2.03907 val_acc=50.40%
+Epoch  33 | train_loss=0.96366 train_acc=69.56% | val_loss=1.14242 val_acc=63.20%
+Epoch  34 | train_loss=0.97198 train_acc=69.68% | val_loss=1.38175 val_acc=54.40%
+Epoch  35 | train_loss=0.95839 train_acc=70.28% | val_loss=1.47583 val_acc=53.20%
+Epoch  36 | train_loss=0.94601 train_acc=71.16% | val_loss=1.48733 val_acc=50.80%
+Epoch  37 | train_loss=0.94311 train_acc=70.96% | val_loss=1.17906 val_acc=58.40%
+Epoch  38 | train_loss=0.93386 train_acc=72.08% | val_loss=1.25765 val_acc=62.80%
+Epoch  39 | train_loss=0.94639 train_acc=71.36% | val_loss=1.16017 val_acc=62.00%
+Epoch  40 | train_loss=0.91956 train_acc=71.92% | val_loss=1.70018 val_acc=48.00%
+Epoch  41 | train_loss=0.93636 train_acc=72.40% | val_loss=1.07767 val_acc=67.60%
+Epoch  42 | train_loss=0.91104 train_acc=72.96% | val_loss=1.31635 val_acc=61.20%
+Epoch  43 | train_loss=0.91663 train_acc=72.20% | val_loss=1.46675 val_acc=56.80%
+Epoch  44 | train_loss=0.89658 train_acc=73.72% | val_loss=1.80769 val_acc=47.60%
+Epoch  45 | train_loss=0.90733 train_acc=74.12% | val_loss=1.03843 val_acc=68.40%
+Epoch  46 | train_loss=0.88935 train_acc=74.60% | val_loss=1.37291 val_acc=53.20%
+Epoch  47 | train_loss=0.89716 train_acc=74.36% | val_loss=1.04854 val_acc=66.80%
+Epoch  48 | train_loss=0.87822 train_acc=75.12% | val_loss=0.95193 val_acc=72.80%
+Epoch  49 | train_loss=0.87765 train_acc=74.96% | val_loss=1.25629 val_acc=64.80%
+Epoch  50 | train_loss=0.88804 train_acc=74.72% | val_loss=0.97766 val_acc=72.80%
+Epoch  51 | train_loss=0.86621 train_acc=76.04% | val_loss=1.04723 val_acc=68.40%
+Epoch  52 | train_loss=0.88773 train_acc=74.16% | val_loss=1.42015 val_acc=56.40%
+Epoch  53 | train_loss=0.86132 train_acc=75.68% | val_loss=1.00347 val_acc=68.80%
+Epoch  54 | train_loss=0.85441 train_acc=76.56% | val_loss=1.54420 val_acc=56.80%
+Epoch  55 | train_loss=0.83912 train_acc=76.44% | val_loss=1.36560 val_acc=60.40%
+Epoch  56 | train_loss=0.86862 train_acc=75.76% | val_loss=1.57717 val_acc=50.40%
+Epoch  57 | train_loss=0.85659 train_acc=75.64% | val_loss=1.01460 val_acc=72.40%
+Epoch  58 | train_loss=0.82816 train_acc=78.48% | val_loss=0.97917 val_acc=72.40%
+Epoch  59 | train_loss=0.82562 train_acc=78.44% | val_loss=0.99170 val_acc=69.60%
+Epoch  60 | train_loss=0.81860 train_acc=78.72% | val_loss=1.16024 val_acc=67.60%
+Epoch  61 | train_loss=0.80710 train_acc=78.88% | val_loss=1.02561 val_acc=68.40%
+Epoch  62 | train_loss=0.80125 train_acc=80.24% | val_loss=1.06608 val_acc=70.40%
+Epoch  63 | train_loss=0.81301 train_acc=78.24% | val_loss=1.47693 val_acc=60.40%
+Epoch  64 | train_loss=0.80625 train_acc=79.00% | val_loss=0.98630 val_acc=72.40%
+Epoch  65 | train_loss=0.77405 train_acc=81.32% | val_loss=0.94496 val_acc=77.60%
+Epoch  66 | train_loss=0.79037 train_acc=79.80% | val_loss=0.88451 val_acc=76.00%
+Epoch  67 | train_loss=0.79778 train_acc=79.88% | val_loss=1.30134 val_acc=60.00%
+Epoch  68 | train_loss=0.77383 train_acc=81.48% | val_loss=0.95521 val_acc=72.40%
+Epoch  69 | train_loss=0.76457 train_acc=82.04% | val_loss=1.03470 val_acc=73.60%
+Epoch  70 | train_loss=0.74964 train_acc=82.96% | val_loss=1.07471 val_acc=68.80%
+Epoch  71 | train_loss=0.73395 train_acc=83.20% | val_loss=0.89684 val_acc=74.40%
+Epoch  72 | train_loss=0.74888 train_acc=82.84% | val_loss=0.93925 val_acc=73.20%
+Epoch  73 | train_loss=0.73558 train_acc=82.72% | val_loss=0.86192 val_acc=80.40%
+Epoch  74 | train_loss=0.72912 train_acc=83.92% | val_loss=1.22832 val_acc=68.80%
+Epoch  75 | train_loss=0.72306 train_acc=83.84% | val_loss=0.94272 val_acc=78.00%
+Epoch  76 | train_loss=0.72892 train_acc=84.24% | val_loss=1.07054 val_acc=68.80%
+Epoch  77 | train_loss=0.72766 train_acc=84.00% | val_loss=0.83731 val_acc=80.40%
+Epoch  78 | train_loss=0.68907 train_acc=86.32% | val_loss=1.18320 val_acc=63.60%
+Epoch  79 | train_loss=0.68951 train_acc=86.80% | val_loss=1.13763 val_acc=72.40%
+Epoch  80 | train_loss=0.68441 train_acc=86.80% | val_loss=0.82822 val_acc=80.00%
+Epoch  81 | train_loss=0.67679 train_acc=86.64% | val_loss=0.99437 val_acc=78.00%
+Epoch  82 | train_loss=0.67872 train_acc=87.40% | val_loss=0.96503 val_acc=75.60%
+Epoch  83 | train_loss=0.65977 train_acc=87.88% | val_loss=0.88517 val_acc=79.60%
+Epoch  84 | train_loss=0.65323 train_acc=87.88% | val_loss=0.84703 val_acc=80.00%
+Epoch  85 | train_loss=0.64517 train_acc=88.84% | val_loss=1.08512 val_acc=72.80%
+Epoch  86 | train_loss=0.64813 train_acc=89.00% | val_loss=0.99982 val_acc=76.00%
+Epoch  87 | train_loss=0.63763 train_acc=90.08% | val_loss=0.93951 val_acc=76.40%
+Epoch  88 | train_loss=0.63134 train_acc=89.32% | val_loss=0.92697 val_acc=77.20%
+Epoch  89 | train_loss=0.63230 train_acc=89.72% | val_loss=0.93899 val_acc=76.40%
+Epoch  90 | train_loss=0.62940 train_acc=89.92% | val_loss=0.92841 val_acc=77.60%
+Epoch  91 | train_loss=0.61472 train_acc=90.80% | val_loss=0.92147 val_acc=76.80%
+Epoch  92 | train_loss=0.60936 train_acc=91.48% | val_loss=1.02622 val_acc=75.20%
+Epoch  93 | train_loss=0.60635 train_acc=91.16% | val_loss=0.94242 val_acc=74.80%
+Epoch  94 | train_loss=0.60019 train_acc=91.76% | val_loss=1.00872 val_acc=76.40%
+Epoch  95 | train_loss=0.59638 train_acc=91.52% | val_loss=1.02576 val_acc=75.60%
+Epoch  96 | train_loss=0.59008 train_acc=92.00% | val_loss=1.00108 val_acc=73.60%
+Epoch  97 | train_loss=0.58796 train_acc=92.16% | val_loss=0.97132 val_acc=75.60%
+Epoch  98 | train_loss=0.58459 train_acc=93.24% | val_loss=1.02514 val_acc=75.20%
+Epoch  99 | train_loss=0.59419 train_acc=92.12% | val_loss=0.98651 val_acc=75.60%
+Epoch 100 | train_loss=0.58991 train_acc=92.28% | val_loss=1.00807 val_acc=75.20%
